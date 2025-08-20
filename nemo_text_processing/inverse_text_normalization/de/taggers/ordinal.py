@@ -28,8 +28,13 @@ class OrdinalFst(GraphFst):
         tn_ordinal_verbalizer: TN Ordinal Verbalizer
     """
 
-    def __init__(self, itn_cardinal_tagger: GraphFst, tn_ordinal_verbalizer: GraphFst, deterministic: bool = True):
-        super().__init__(name="ordinal", kind="classify", deterministic=deterministic)
+    def __init__(
+        self,
+        itn_cardinal_tagger: GraphFst,
+        tn_ordinal_verbalizer: GraphFst,
+        project_input: bool = False
+    ):
+        super().__init__(name="ordinal", kind="classify", project_input=project_input)
 
         tagger = tn_ordinal_verbalizer.graph.invert().optimize()
 

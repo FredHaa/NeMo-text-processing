@@ -24,11 +24,12 @@ from nemo_text_processing.inverse_text_normalization.ar.taggers.measure import M
 from nemo_text_processing.inverse_text_normalization.ar.taggers.money import MoneyFst
 from nemo_text_processing.inverse_text_normalization.ar.taggers.punctuation import PunctuationFst
 from nemo_text_processing.inverse_text_normalization.ar.taggers.word import WordFst
-from nemo_text_processing.text_normalization.ar.graph_utils import (
+from nemo_text_processing.text_normalization.en.graph_utils import (
     GraphFst,
     delete_extra_space,
     delete_space,
     generator_main,
+    generate_far_filename,
 )
 from nemo_text_processing.text_normalization.ar.taggers.tokenize_and_classify import ClassifyFst as TNClassifyFst
 from nemo_text_processing.text_normalization.en.graph_utils import INPUT_LOWER_CASED
@@ -52,6 +53,7 @@ class ClassifyFst(GraphFst):
         self,
         cache_dir: str = None,
         overwrite_cache: bool = False,
+        project_input: bool = False,
         whitelist: str = None,
         input_case: str = INPUT_LOWER_CASED,
     ):
@@ -60,33 +62,41 @@ class ClassifyFst(GraphFst):
         far_file = None
         if cache_dir is not None and cache_dir != "None":
             os.makedirs(cache_dir, exist_ok=True)
-            far_file = os.path.join(cache_dir, f"ar_itn_{input_case}.far")
+            far_file = generate_far_filename(
+                language="ar",
+                mode="itn",
+                cache_dir=cache_dir,
+                operation="tokenize_and_classify",
+                project_input=project_input,
+                input_case=input_case,
+                whitelist_file=whitelist
+            )
         if not overwrite_cache and far_file and os.path.exists(far_file):
             self.fst = pynini.Far(far_file, mode="r")["tokenize_and_classify"]
             logger.info(f"ClassifyFst.fst was restored from {far_file}.")
         else:
             logger.info(f"Creating ClassifyFst grammars.")
             tn_classify = TNClassifyFst(
-                input_case='cased', deterministic=True, cache_dir=cache_dir, overwrite_cache=True
+                input_case='cased', deterministic=True, project_input=project_input, cache_dir=cache_dir, overwrite_cache=True
             )
 
-            cardinal = CardinalFst(tn_cardinal=tn_classify.cardinal)
+            cardinal = CardinalFst(tn_cardinal=tn_classify.cardinal, project_input=project_input)
             cardinal_graph = cardinal.fst
-            decimal = DecimalFst(tn_decimal=tn_classify.decimal)
+            decimal = DecimalFst(tn_decimal=tn_classify.decimal, project_input=project_input)
             decimal_graph = decimal.fst
-            fraction = FractionFst(tn_cardinal=tn_classify.cardinal)
+            fraction = FractionFst(tn_cardinal=tn_classify.cardinal, project_input=project_input)
             fraction_graph = fraction.fst
-            money = MoneyFst(itn_cardinal_tagger=cardinal)
+            money = MoneyFst(itn_cardinal_tagger=cardinal, project_input=project_input)
             money_graph = money.fst
             measure = MeasureFst(
                 itn_cardinal_tagger=cardinal,
                 itn_decimal_tagger=decimal,
                 itn_fraction_tagger=fraction,
-                deterministic=True,
+                project_input=project_input,
             )
             measure_graph = measure.fst
-            word_graph = WordFst().fst
-            punct_graph = PunctuationFst().fst
+            word_graph = WordFst(project_input=project_input).fst
+            punct_graph = PunctuationFst(project_input=project_input).fst
 
             classify = (
                 pynutil.add_weight(cardinal_graph, 1.1)

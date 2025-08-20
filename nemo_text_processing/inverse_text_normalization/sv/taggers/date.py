@@ -30,11 +30,8 @@ class DateFst(GraphFst):
         tn_date_tagger: TN date tagger
     """
 
-    def __init__(
-        self,
-        tn_date_tagger: GraphFst,
-    ):
-        super().__init__(name="date", kind="classify")
+    def __init__(self, tn_date_tagger: GraphFst, project_input: bool = False):
+        super().__init__(name="date", kind="classify", project_input=project_input)
 
         def force_double_digits(fst: GraphFst):
             double = (NEMO_DIGIT + NEMO_DIGIT) @ fst

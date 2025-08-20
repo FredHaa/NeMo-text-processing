@@ -16,7 +16,7 @@
 import pynini
 from pynini.lib import pynutil
 from nemo_text_processing.inverse_text_normalization.es.utils import get_abs_path
-from nemo_text_processing.text_normalization.en.graph_utils import INPUT_LOWER_CASED, NEMO_SIGMA, NEMO_SPACE, GraphFst
+from nemo_text_processing.text_normalization.en.graph_utils import NEMO_SIGMA, NEMO_SPACE, GraphFst
 from nemo_text_processing.text_normalization.es.graph_utils import ES_MINUS
 
 
@@ -38,11 +38,15 @@ class FractionFst(GraphFst):
     Args:
         cardinal: CardinalFst
         ordinal: OrdinalFst
-        input_case: accepting either "lower_cased" or "cased" input.
     """
 
-    def __init__(self, cardinal: GraphFst, ordinal: GraphFst, input_case: str = INPUT_LOWER_CASED):
-        super().__init__(name="fraction", kind="classify")
+    def __init__(
+        self,
+        cardinal: GraphFst,
+        ordinal: GraphFst,
+        project_input: bool = False
+    ):
+        super().__init__(name="fraction", kind="classify", project_input=project_input)
 
         cardinal_graph = cardinal.graph_no_exception
         ordinal_graph = ordinal.graph_masc_num_no_exception

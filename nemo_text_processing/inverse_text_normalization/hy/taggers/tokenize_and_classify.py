@@ -34,6 +34,7 @@ from nemo_text_processing.text_normalization.en.graph_utils import (
     delete_extra_space,
     delete_space,
     generator_main,
+    generate_far_filename,
 )
 from nemo_text_processing.utils.logging import logger
 
@@ -55,37 +56,46 @@ class ClassifyFst(GraphFst):
         whitelist: str = None,
         overwrite_cache: bool = False,
         input_case: str = INPUT_LOWER_CASED,
+        project_input: bool = False
     ):
         super().__init__(name="tokenize_and_classify", kind="classify")
 
         far_file = None
         if cache_dir is not None and cache_dir != "None":
             os.makedirs(cache_dir, exist_ok=True)
-            far_file = os.path.join(cache_dir, f"_hy_itn_{input_case}.far")
+            far_file = generate_far_filename(
+                language="hy",
+                mode="itn",
+                cache_dir=cache_dir,
+                operation="tokenize_and_classify",
+                project_input=project_input,
+                input_case=input_case,
+                whitelist_file=whitelist
+            )
         if not overwrite_cache and far_file and os.path.exists(far_file):
             self.fst = pynini.Far(far_file, mode="r")["tokenize_and_classify"]
             logger.info(f"ClassifyFst.fst was restored from {far_file}.")
         else:
             logger.info(f"Creating ClassifyFst grammars.")
 
-            cardinal = CardinalFst()
+            cardinal = CardinalFst(project_input=project_input)
             cardinal_graph = cardinal.fst
 
-            ordinal = OrdinalFst(cardinal)
+            ordinal = OrdinalFst(cardinal, project_input=project_input)
             ordinal_graph = ordinal.fst
 
-            fraction = FractionFst(cardinal, ordinal)
+            fraction = FractionFst(cardinal, ordinal, project_input=project_input)
             fraction_graph = fraction.fst
 
-            decimal = DecimalFst(cardinal)
+            decimal = DecimalFst(cardinal, project_input=project_input)
             decimal_graph = decimal.fst
 
-            measure_graph = MeasureFst(cardinal=cardinal, decimal=decimal).fst
-            word_graph = WordFst().fst
-            time_graph = TimeFst().fst
-            money_graph = MoneyFst(cardinal, decimal).fst
-            punct_graph = PunctuationFst().fst
-            whitelist_graph = WhiteListFst().fst
+            measure_graph = MeasureFst(cardinal=cardinal, decimal=decimal, project_input=project_input).fst
+            word_graph = WordFst(project_input=project_input).fst
+            time_graph = TimeFst(project_input=project_input).fst
+            money_graph = MoneyFst(cardinal, decimal, project_input=project_input).fst
+            punct_graph = PunctuationFst(project_input=project_input).fst
+            whitelist_graph = WhiteListFst(input_file=whitelist, project_input=project_input).fst
 
             classify = (
                 pynutil.add_weight(whitelist_graph, 1.01)

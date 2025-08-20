@@ -19,11 +19,12 @@ import os
 import pynini
 from pynini.lib import pynutil
 
-from nemo_text_processing.inverse_text_normalization.hi.graph_utils import (
+from nemo_text_processing.text_normalization.en.graph_utils import (
     GraphFst,
     delete_extra_space,
     delete_space,
     generator_main,
+    generate_far_filename,
 )
 from nemo_text_processing.inverse_text_normalization.hi.taggers.cardinal import CardinalFst
 from nemo_text_processing.inverse_text_normalization.hi.taggers.date import DateFst
@@ -58,40 +59,49 @@ class ClassifyFst(GraphFst):
         overwrite_cache: bool = False,
         whitelist: str = None,
         input_case: str = None,
+        project_input: bool = False
     ):
         super().__init__(name="tokenize_and_classify", kind="classify")
 
         far_file = None
         if cache_dir is not None and cache_dir != "None":
             os.makedirs(cache_dir, exist_ok=True)
-            far_file = os.path.join(cache_dir, f"hi_itn.far")
+            far_file = generate_far_filename(
+                language="hi",
+                mode="itn",
+                cache_dir=cache_dir,
+                operation="tokenize_and_classify",
+                project_input=project_input,
+                input_case=input_case,
+                whitelist_file=whitelist
+            )
         if not overwrite_cache and far_file and os.path.exists(far_file):
             self.fst = pynini.Far(far_file, mode="r")["tokenize_and_classify"]
             logging.info(f"ClassifyFst.fst was restored from {far_file}.")
         else:
             logging.info(f"Creating ClassifyFst grammars.")
-            cardinal = CardinalFst()
+            cardinal = CardinalFst(project_input=project_input)
             cardinal_graph = cardinal.fst
 
-            ordinal = OrdinalFst(cardinal)
+            ordinal = OrdinalFst(cardinal, project_input=project_input)
             ordinal_graph = ordinal.fst
-            decimal = DecimalFst(cardinal)
+            decimal = DecimalFst(cardinal, project_input=project_input)
             decimal_graph = decimal.fst
-            fraction = FractionFst(cardinal)
+            fraction = FractionFst(cardinal, project_input=project_input)
             fraction_graph = fraction.fst
-            date = DateFst(cardinal)
+            date = DateFst(cardinal, project_input=project_input)
             date_graph = date.fst
-            time = TimeFst()
+            time = TimeFst(project_input=project_input)
             time_graph = time.fst
-            measure = MeasureFst(cardinal, decimal)
+            measure = MeasureFst(cardinal, decimal, project_input=project_input)
             measure_graph = measure.fst
-            money = MoneyFst(cardinal, decimal)
+            money = MoneyFst(cardinal, decimal, project_input=project_input)
             money_graph = money.fst
-            telephone = TelephoneFst(cardinal)
+            telephone = TelephoneFst(project_input=project_input)
             telephone_graph = telephone.fst
-            punct_graph = PunctuationFst().fst
-            whitelist_graph = WhiteListFst().fst
-            word_graph = WordFst().fst
+            punct_graph = PunctuationFst(project_input=project_input).fst
+            whitelist_graph = WhiteListFst(input_file=whitelist, project_input=project_input).fst
+            word_graph = WordFst(project_input=project_input).fst
 
             classify = (
                 pynutil.add_weight(cardinal_graph, 1.1)

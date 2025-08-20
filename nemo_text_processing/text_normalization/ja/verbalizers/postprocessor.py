@@ -16,7 +16,7 @@
 import pynini
 from pynini.lib import pynutil, utf8
 
-from nemo_text_processing.text_normalization.ja.graph_utils import (
+from nemo_text_processing.text_normalization.en.graph_utils import (
     NEMO_ALPHA,
     NEMO_DIGIT,
     NEMO_PUNCT,

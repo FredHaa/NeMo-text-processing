@@ -16,7 +16,7 @@
 import pynini
 from pynini.lib import pynutil
 
-from nemo_text_processing.inverse_text_normalization.ja.graph_utils import (
+from nemo_text_processing.text_normalization.en.graph_utils import (
     NEMO_DIGIT,
     NEMO_NOT_QUOTE,
     GraphFst,
@@ -32,8 +32,8 @@ class CardinalFst(GraphFst):
     cardinal { positive: "+" integer: "23" } -> +23
     """
 
-    def __init__(self):
-        super().__init__(name="cardinal", kind="verbalize")
+    def __init__(self, project_input: bool = False):
+        super().__init__(name="cardinal", kind="verbalize", project_input=project_input)
 
         optional_sign = (
             pynutil.delete("negative:")
@@ -52,7 +52,7 @@ class CardinalFst(GraphFst):
             + pynutil.delete("\"")
         )
 
-        exactly_three_digits = NEMO_DIGIT**3
+        exactly_three_digits = NEMO_DIGIT ** 3
         at_most_three_digits = pynini.closure(NEMO_DIGIT, 1, 3)
 
         group_by_threes = at_most_three_digits + (pynutil.insert(",") + exactly_three_digits).closure()

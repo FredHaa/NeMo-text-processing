@@ -18,11 +18,12 @@ import os
 import pynini
 from pynini.lib import pynutil
 
-from nemo_text_processing.text_normalization.hi.graph_utils import (
+from nemo_text_processing.text_normalization.en.graph_utils import (
     GraphFst,
     delete_extra_space,
     delete_space,
     generator_main,
+    generate_far_filename,
 )
 from nemo_text_processing.text_normalization.hi.verbalizers.verbalize import VerbalizeFst
 from nemo_text_processing.text_normalization.hi.verbalizers.word import WordFst
@@ -40,19 +41,32 @@ class VerbalizeFinalFst(GraphFst):
         overwrite_cache: set to True to overwrite .far files
     """
 
-    def __init__(self, deterministic: bool = True, cache_dir: str = None, overwrite_cache: bool = False):
+    def __init__(
+        self,
+        deterministic: bool = True,
+        project_input: bool = False,
+        cache_dir: str = None,
+        overwrite_cache: bool = False
+    ):
         super().__init__(name="verbalize_final", kind="verbalize", deterministic=deterministic)
 
         far_file = None
         if cache_dir is not None and cache_dir != "None":
             os.makedirs(cache_dir, exist_ok=True)
-            far_file = os.path.join(cache_dir, f"en_tn_{deterministic}_deterministic_verbalizer.far")
+            far_file = generate_far_filename(
+                language="hi",
+                mode="tn",
+                cache_dir=cache_dir,
+                operation="verbalize",
+                deterministic=deterministic,
+                project_input=project_input
+            )
         if not overwrite_cache and far_file and os.path.exists(far_file):
             self.fst = pynini.Far(far_file, mode="r")["verbalize"]
             logging.info(f'VerbalizeFinalFst graph was restored from {far_file}.')
         else:
-            verbalize = VerbalizeFst(deterministic=deterministic).fst
-            word = WordFst(deterministic=deterministic).fst
+            verbalize = VerbalizeFst(deterministic=deterministic, project_input=project_input).fst
+            word = WordFst(deterministic=deterministic, project_input=project_input).fst
             types = verbalize | word
 
             if deterministic:

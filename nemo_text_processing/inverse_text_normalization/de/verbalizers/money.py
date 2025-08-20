@@ -27,8 +27,12 @@ class MoneyFst(GraphFst):
         decimal: ITN Decimal verbalizer
     """
 
-    def __init__(self, decimal: GraphFst, deterministic: bool = True):
-        super().__init__(name="money", kind="verbalize", deterministic=deterministic)
+    def __init__(
+        self,
+        decimal: GraphFst,
+        project_input: bool = False
+    ):
+        super().__init__(name="money", kind="verbalize", project_input=project_input)
         unit = (
             pynutil.delete("currency:")
             + delete_space

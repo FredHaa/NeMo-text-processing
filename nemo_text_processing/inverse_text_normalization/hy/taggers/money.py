@@ -18,7 +18,6 @@ from pynini.lib import pynutil
 
 from nemo_text_processing.inverse_text_normalization.hy.utils import get_abs_path
 from nemo_text_processing.text_normalization.en.graph_utils import (
-    INPUT_LOWER_CASED,
     NEMO_SIGMA,
     GraphFst,
     convert_space,
@@ -34,13 +33,16 @@ class MoneyFst(GraphFst):
     Args:
         cardinal: CardinalFst
         decimal: DecimalFst
-        input_case: accepting either "lower_cased" or "cased" input.
-        (input_case is not necessary everything is made for lower_cased input)
         TODO add cased input support
     """
 
-    def __init__(self, cardinal: GraphFst, decimal: GraphFst, input_case: str = INPUT_LOWER_CASED):
-        super().__init__(name="money", kind="classify")
+    def __init__(
+        self,
+        cardinal: GraphFst,
+        decimal: GraphFst,
+        project_input: bool = False
+    ):
+        super().__init__(name="money", kind="classify", project_input=project_input)
         # quantity, integer_part, fractional_part, currency
 
         cardinal_graph = cardinal.graph_no_exception

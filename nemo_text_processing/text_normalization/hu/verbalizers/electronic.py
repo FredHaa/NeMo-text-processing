@@ -19,18 +19,12 @@ from nemo_text_processing.text_normalization.en.graph_utils import (
     NEMO_SIGMA,
     NEMO_SPACE,
     GraphFst,
-    at,
     colon,
     delete_preserve_order,
     domain_string,
     double_quotes,
-    double_slash,
-    http,
-    https,
-    period,
     protocol_string,
     username_string,
-    www,
 )
 from nemo_text_processing.text_normalization.hu.utils import get_abs_path
 
@@ -60,8 +54,8 @@ class ElectronicFst(GraphFst):
             for False multiple transduction are generated (used for audio-based normalization)
     """
 
-    def __init__(self, deterministic: bool = True):
-        super().__init__(name="electronic", kind="verbalize", deterministic=deterministic)
+    def __init__(self, deterministic: bool = True, project_input: bool = False):
+        super().__init__(name="electronic", kind="verbalize", deterministic=deterministic, project_input=project_input)
 
         graph_digit = digit_no_zero | zero
 

@@ -16,21 +16,11 @@
 import pynini
 from pynini.lib import pynutil
 
-from nemo_text_processing.inverse_text_normalization.hi.utils import get_abs_path
 from nemo_text_processing.text_normalization.en.graph_utils import (
-    INPUT_CASED,
-    INPUT_LOWER_CASED,
-    MIN_NEG_WEIGHT,
-    MINUS,
-    NEMO_DIGIT,
-    NEMO_SIGMA,
-    TO_LOWER,
     GraphFst,
-    capitalized_input_graph,
     delete_extra_space,
     delete_space,
 )
-from nemo_text_processing.text_normalization.en.utils import load_labels
 
 
 class FractionFst(GraphFst):
@@ -48,8 +38,8 @@ class FractionFst(GraphFst):
         fraction: FractionFst
     """
 
-    def __init__(self, cardinal: GraphFst):
-        super().__init__(name="fraction", kind="classify")
+    def __init__(self, cardinal: GraphFst, project_input: bool = False):
+        super().__init__(name="fraction", kind="classify", project_input=project_input)
         # integer_part # numerator # denominator
         graph_cardinal = cardinal.graph_no_exception
 

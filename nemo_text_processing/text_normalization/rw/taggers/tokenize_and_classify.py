@@ -20,11 +20,12 @@ from pynini.lib import pynutil
 
 from nemo_text_processing.text_normalization.en.taggers.punctuation import PunctuationFst
 from nemo_text_processing.text_normalization.en.taggers.word import WordFst
-from nemo_text_processing.text_normalization.rw.graph_utils import (
+from nemo_text_processing.text_normalization.en.graph_utils import (
     GraphFst,
     delete_extra_space,
     delete_space,
     generator_main,
+    generate_far_filename,
 )
 from nemo_text_processing.text_normalization.rw.taggers.cardinal import CardinalFst
 from nemo_text_processing.text_normalization.rw.taggers.time import TimeFst
@@ -38,26 +39,36 @@ class ClassifyFst(GraphFst):
         cache_dir: str = None,
         overwrite_cache: bool = False,
         deterministic: bool = True,
-        whitelist: str = None,
+        project_input: bool = False,
+        whitelist: str = None
     ):
         super().__init__(name='tokenize_and_classify', kind='classify', deterministic=deterministic)
         far_file = None
         if cache_dir is not None and cache_dir != "None":
             os.makedirs(cache_dir, exist_ok=True)
-            far_file = os.path.join(cache_dir, "rw_tn_tokenize_and_classify.far")
+            far_file = generate_far_filename(
+                language="rw",
+                mode="tn",
+                cache_dir=cache_dir,
+                operation="tokenize",
+                deterministic=deterministic,
+                project_input=project_input,
+                input_case=input_case,
+                whitelist_file=""
+            )
         if not overwrite_cache and far_file and os.path.exists(far_file):
             print("FAR file: ", far_file)
             self.fst = pynini.Far(far_file, mode="r")["TOKENIZE_AND_CLASSIFY"]
         else:
-            cardinal = CardinalFst()
+            cardinal = CardinalFst(project_input=project_input)
             cardinal_graph = cardinal.fst
-            time_graph = TimeFst().fst
-            punctuation = PunctuationFst()
+            time_graph = TimeFst(project_input=project_input).fst
+            punctuation = PunctuationFst(project_input=project_input)
             punct_graph = punctuation.fst
 
-            word_graph = WordFst(punctuation=punctuation).fst
+            word_graph = WordFst(punctuation=punctuation, project_input=project_input).fst
 
-            whitelist_graph = WhiteListFst().fst
+            whitelist_graph = WhiteListFst(project_input=project_input).fst
             classify = (
                 pynutil.add_weight(time_graph, 1.05)
                 | pynutil.add_weight(cardinal_graph, 1.1)

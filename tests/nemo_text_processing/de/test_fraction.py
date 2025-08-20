@@ -20,7 +20,7 @@ from nemo_text_processing.inverse_text_normalization.inverse_normalize import In
 from nemo_text_processing.text_normalization.normalize import Normalizer
 from nemo_text_processing.text_normalization.normalize_with_audio import NormalizerWithAudio
 
-from ..utils import CACHE_DIR, RUN_AUDIO_BASED_TESTS, parse_test_case_file
+from tests.nemo_text_processing.utils import CACHE_DIR, RUN_AUDIO_BASED_TESTS, parse_test_case_file, assert_projecting_output
 
 
 class TestFraction:
@@ -53,3 +53,23 @@ class TestFraction:
                 test_input, n_tagged=1000, punct_post_process=False
             )
             assert expected in pred_non_deterministic
+
+    inverse_normalizer_de_projecting = InverseNormalizer(
+        lang='de', project_input=True, input_case="cased", cache_dir=CACHE_DIR, overwrite_cache=False
+    )
+
+    @parameterized.expand(parse_test_case_file('de/data_inverse_text_normalization/test_cases_fraction.txt'))
+    @pytest.mark.run_only_on('CPU')
+    @pytest.mark.unit
+    def test_denorm_project(self, test_input, expected):
+        pred = self.inverse_normalizer_de_projecting.inverse_normalize(test_input, verbose=True)
+        assert_projecting_output(pred, expected, test_input)
+
+    normalizer_de_projecting = Normalizer(input_case='cased', lang='de', project_input=True, cache_dir=CACHE_DIR, overwrite_cache=False)
+
+    @parameterized.expand(parse_test_case_file('de/data_text_normalization/test_cases_fraction.txt'))
+    @pytest.mark.run_only_on('CPU')
+    @pytest.mark.unit
+    def test_norm_project(self, expected, test_input):
+        pred = self.normalizer_de_projecting.normalize(test_input, verbose=True)
+        assert_projecting_output(pred, expected, test_input)

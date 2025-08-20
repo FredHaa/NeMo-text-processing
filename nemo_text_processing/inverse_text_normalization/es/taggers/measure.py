@@ -16,8 +16,6 @@ import pynini
 from pynini.lib import pynutil
 from nemo_text_processing.inverse_text_normalization.es.utils import get_abs_path
 from nemo_text_processing.text_normalization.en.graph_utils import (
-    INPUT_CASED,
-    INPUT_LOWER_CASED,
     NEMO_ALPHA,
     NEMO_SIGMA,
     TO_LOWER,
@@ -41,8 +39,14 @@ class MeasureFst(GraphFst):
         input_case: accepting either "lower_cased" or "cased" input.
     """
 
-    def __init__(self, cardinal: GraphFst, decimal: GraphFst, fraction: GraphFst, input_case: str = INPUT_LOWER_CASED):
-        super().__init__(name="measure", kind="classify")
+    def __init__(
+        self,
+        cardinal: GraphFst,
+        decimal: GraphFst,
+        fraction: GraphFst,
+        project_input: bool = False
+    ):
+        super().__init__(name="measure", kind="classify", project_input=project_input)
 
         cardinal_graph = cardinal.graph_no_exception
 

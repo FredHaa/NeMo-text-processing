@@ -29,8 +29,13 @@ class WhiteListFst(GraphFst):
         e.g. nemo_text_processing/inverse_text_normalization/en/data/whitelist.tsv
     """
 
-    def __init__(self, tn_whitelist_tagger: GraphFst, deterministic: bool = True, input_file: str = None):
-        super().__init__(name="whitelist", kind="classify", deterministic=deterministic)
+    def __init__(
+        self,
+        tn_whitelist_tagger: GraphFst,
+        project_input: bool = False,
+        input_file: str = None
+    ):
+        super().__init__(name="whitelist", kind="classify", project_input=project_input)
 
         if input_file:
             whitelist = pynini.string_file(input_file).invert()

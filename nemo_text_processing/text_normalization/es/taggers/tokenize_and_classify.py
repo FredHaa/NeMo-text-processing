@@ -23,6 +23,7 @@ from nemo_text_processing.text_normalization.en.graph_utils import (
     delete_extra_space,
     delete_space,
     generator_main,
+    generate_far_filename,
 )
 from nemo_text_processing.text_normalization.en.taggers.punctuation import PunctuationFst
 from nemo_text_processing.text_normalization.es.taggers.cardinal import CardinalFst
@@ -59,18 +60,25 @@ class ClassifyFst(GraphFst):
         self,
         input_case: str,
         deterministic: bool = False,
+        project_input: bool = False,
         cache_dir: str = None,
         overwrite_cache: bool = False,
-        whitelist: str = None,
+        whitelist: str = None
     ):
         super().__init__(name="tokenize_and_classify", kind="classify", deterministic=deterministic)
         far_file = None
         if cache_dir is not None and cache_dir != "None":
             os.makedirs(cache_dir, exist_ok=True)
             whitelist_file = os.path.basename(whitelist) if whitelist else ""
-            far_file = os.path.join(
-                cache_dir,
-                f"_{input_case}_es_tn_{deterministic}_deterministic{whitelist_file}.far",
+            far_file = generate_far_filename(
+                language="es",
+                mode="tn",
+                cache_dir=cache_dir,
+                operation="tokenize",
+                deterministic=deterministic,
+                project_input=project_input,
+                input_case=input_case,
+                whitelist_file=whitelist_file
             )
         if not overwrite_cache and far_file and os.path.exists(far_file):
             self.fst = pynini.Far(far_file, mode="r")["tokenize_and_classify"]
@@ -78,46 +86,35 @@ class ClassifyFst(GraphFst):
         else:
             logger.info(f"Creating ClassifyFst grammars. This might take some time...")
 
-            self.cardinal = CardinalFst(deterministic=deterministic)
+            self.cardinal = CardinalFst(deterministic=deterministic, project_input=project_input)
             cardinal_graph = self.cardinal.fst
 
-            self.ordinal = OrdinalFst(cardinal=self.cardinal, deterministic=deterministic)
+            self.ordinal = OrdinalFst(cardinal=self.cardinal, deterministic=deterministic, project_input=project_input)
             ordinal_graph = self.ordinal.fst
 
-            self.decimal = DecimalFst(cardinal=self.cardinal, deterministic=deterministic)
+            self.decimal = DecimalFst(cardinal=self.cardinal, deterministic=deterministic, project_input=project_input)
             decimal_graph = self.decimal.fst
 
-            self.fraction = FractionFst(
-                cardinal=self.cardinal,
-                ordinal=self.ordinal,
-                deterministic=deterministic,
-            )
+            self.fraction = FractionFst(cardinal=self.cardinal, ordinal=self.ordinal, deterministic=deterministic, project_input=project_input)
             fraction_graph = self.fraction.fst
             self.measure = MeasureFst(
-                cardinal=self.cardinal,
-                decimal=self.decimal,
-                fraction=self.fraction,
-                deterministic=deterministic,
+                cardinal=self.cardinal, decimal=self.decimal, fraction=self.fraction, deterministic=deterministic, project_input=project_input
             )
             measure_graph = self.measure.fst
-            self.date = DateFst(cardinal=self.cardinal, deterministic=deterministic)
+            self.date = DateFst(cardinal=self.cardinal, deterministic=deterministic, project_input=project_input)
             date_graph = self.date.fst
-            word_graph = WordFst(deterministic=deterministic).fst
-            self.time = TimeFst(self.cardinal, deterministic=deterministic)
+            word_graph = WordFst(deterministic=deterministic, project_input=project_input).fst
+            self.time = TimeFst(self.cardinal, deterministic=deterministic, project_input=project_input)
             time_graph = self.time.fst
-            self.telephone = TelephoneFst(deterministic=deterministic)
+            self.telephone = TelephoneFst(deterministic=deterministic, project_input=project_input)
             telephone_graph = self.telephone.fst
-            self.electronic = ElectronicFst(deterministic=deterministic)
+            self.electronic = ElectronicFst(deterministic=deterministic, project_input=project_input)
             electronic_graph = self.electronic.fst
-            self.money = MoneyFst(
-                cardinal=self.cardinal,
-                decimal=self.decimal,
-                deterministic=deterministic,
-            )
+            self.money = MoneyFst(cardinal=self.cardinal, decimal=self.decimal, deterministic=deterministic, project_input=project_input)
             money_graph = self.money.fst
-            self.whitelist = WhiteListFst(input_case=input_case, deterministic=deterministic, input_file=whitelist)
+            self.whitelist = WhiteListFst(input_case=input_case, deterministic=deterministic, input_file=whitelist, project_input=project_input)
             whitelist_graph = self.whitelist.fst
-            punct_graph = PunctuationFst(deterministic=deterministic).fst
+            punct_graph = PunctuationFst(deterministic=deterministic, project_input=project_input).fst
 
             classify = (
                 pynutil.add_weight(whitelist_graph, 1.01)

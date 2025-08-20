@@ -25,12 +25,14 @@ class ElectronicFst(GraphFst):
 
     Args:
         tn_electronic: Text normalization Electronic graph
-        deterministic: if True will provide a single transduction option,
-            for False multiple transduction are generated (used for audio-based normalization)
     """
 
-    def __init__(self, tn_electronic, deterministic: bool = True):
-        super().__init__(name="electronic", kind="classify", deterministic=deterministic)
+    def __init__(
+        self,
+        tn_electronic,
+        project_input: bool = False
+    ):
+        super().__init__(name="electronic", kind="classify", project_input=project_input)
 
         graph = tn_electronic.final_graph
         graph = graph.invert().optimize()

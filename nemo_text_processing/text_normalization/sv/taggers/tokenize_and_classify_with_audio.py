@@ -75,11 +75,12 @@ class ClassifyFst(GraphFst):
         self,
         input_case: str,
         deterministic: bool = True,
+        project_input: bool = False,
         cache_dir: str = None,
         overwrite_cache: bool = True,
-        whitelist: str = None,
+        whitelist: str = None
     ):
-        super().__init__(name="tokenize_and_classify", kind="classify", deterministic=deterministic)
+        super().__init__(name="tokenize_and_classify", kind="classify")
 
         far_file = None
         if cache_dir is not None and cache_dir != "None":
@@ -128,9 +129,9 @@ class ClassifyFst(GraphFst):
             v_time_graph = vTimeFst(deterministic=deterministic).fst
             v_date_graph = vDateFst(deterministic=deterministic).fst
             v_money_graph = vMoneyFst(decimal=decimal, deterministic=deterministic).fst
-            v_abbreviation = vAbbreviationFst(deterministic=deterministic).fst
+            v_abbreviation = vAbbreviationFst().fst
 
-            v_word_graph = vWordFst(deterministic=deterministic).fst
+            v_word_graph = vWordFst().fst
 
             sem_w = 1
             word_w = 100

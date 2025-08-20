@@ -34,12 +34,15 @@ class OrdinalFst(GraphFst):
     Args:
         cardinal: CardinalFst
         input_case: accepting either "lower_cased" or "cased" input.
-        (input_case is not necessary everything is made for lower_cased input)
-        TODO add cased input support
     """
 
-    def __init__(self, cardinal: GraphFst, input_case: str = INPUT_LOWER_CASED):
-        super().__init__(name="ordinal", kind="classify")
+    def __init__(
+        self,
+        cardinal: GraphFst,
+        input_case: str = INPUT_LOWER_CASED,
+        project_input: bool = False
+    ):
+        super().__init__(name="ordinal", kind="classify", project_input=project_input)
 
         cardinal_graph = cardinal.graph_no_exception
         graph_digit = pynini.string_file(get_abs_path("data/ordinals/digit.tsv"))

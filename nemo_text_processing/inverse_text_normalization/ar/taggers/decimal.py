@@ -15,11 +15,10 @@
 import pynini
 from pynini.lib import pynutil
 
-from nemo_text_processing.text_normalization.ar.graph_utils import (
+from nemo_text_processing.text_normalization.en.graph_utils import (
     NEMO_SPACE,
     GraphFst,
     delete_extra_space,
-    insert_space,
 )
 
 
@@ -32,8 +31,8 @@ class DecimalFst(GraphFst):
         tn_decimal: Text normalization Decimal graph
     """
 
-    def __init__(self, tn_decimal):
-        super().__init__(name="decimal", kind="classify")
+    def __init__(self, tn_decimal, project_input: bool = False):
+        super().__init__(name="decimal", kind="classify", project_input=project_input)
 
         optional_graph_negative = pynini.closure(
             pynutil.insert("negative: ") + pynini.cross("سالب", '"true"') + delete_extra_space,

@@ -17,15 +17,23 @@ from parameterized import parameterized
 
 from nemo_text_processing.text_normalization.normalize import Normalizer
 
-from ..utils import CACHE_DIR, parse_test_case_file
+from tests.nemo_text_processing.utils import CACHE_DIR, parse_test_case_file, assert_projecting_output
 
 
-class TestChar:
+class TestTime:
     normalizer = Normalizer(lang='it', cache_dir=CACHE_DIR, overwrite_cache=False, input_case='cased')
+    normalizer_project = Normalizer(lang='it', cache_dir=CACHE_DIR, overwrite_cache=False, input_case='cased', project_input=True)
 
     @parameterized.expand(parse_test_case_file('it/data_text_normalization/test_cases_time.txt'))
     @pytest.mark.run_only_on('CPU')
     @pytest.mark.unit
-    def test_norm_char(self, test_input, expected):
-        preds = self.normalizer.normalize(test_input, punct_post_process=True)
-        assert preds in expected
+    def test_norm_time(self, test_input, expected):
+        pred = self.normalizer.normalize(test_input, punct_post_process=True)
+        assert pred in expected
+
+    @parameterized.expand(parse_test_case_file('it/data_text_normalization/test_cases_time.txt'))
+    @pytest.mark.run_only_on('CPU')
+    @pytest.mark.unit
+    def test_norm_time_project_input(self, test_input, expected):
+        pred = self.normalizer_project.normalize(test_input)
+        assert_projecting_output(pred, expected, test_input)

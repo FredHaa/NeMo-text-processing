@@ -14,22 +14,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 import pytest
 from parameterized import parameterized
 
 from nemo_text_processing.text_normalization.normalize import Normalizer
 
-from ..utils import CACHE_DIR, parse_test_case_file
+from tests.nemo_text_processing.utils import CACHE_DIR, parse_test_case_file, assert_projecting_output
 
 
 class TestWhitelist:
 
-    normalizer_rw = Normalizer(input_case='cased', lang='rw', cache_dir=CACHE_DIR, overwrite_cache=False)
+    normalizer = Normalizer(input_case='cased', lang='rw', cache_dir=CACHE_DIR, overwrite_cache=False)
+    normalizer_project = Normalizer(input_case='cased', lang='rw', project_input=True, cache_dir=CACHE_DIR, overwrite_cache=False)
 
     @parameterized.expand(parse_test_case_file('rw/data_text_normalization/test_cases_whitelist.txt'))
     @pytest.mark.run_only_on('CPU')
     @pytest.mark.unit
-    def test_norm(self, test_input, expected):
-        pred = self.normalizer_rw.normalize(test_input, verbose=False)
+    def test_norm_whitelist(self, test_input, expected):
+        pred = self.normalizer.normalize(test_input, verbose=False, punct_post_process=False)
         assert pred == expected
+
+    @parameterized.expand(parse_test_case_file('rw/data_text_normalization/test_cases_whitelist.txt'))
+    @pytest.mark.run_only_on('CPU')
+    @pytest.mark.unit
+    def test_norm_whitelist_project_input(self, test_input, expected):
+        pred = self.normalizer_project.normalize(test_input, verbose=False, punct_post_process=False)
+        assert_projecting_output(pred, expected, test_input)

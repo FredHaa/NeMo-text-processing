@@ -25,6 +25,7 @@ from nemo_text_processing.text_normalization.en.graph_utils import (
     delete_extra_space,
     delete_space,
     generator_main,
+    generate_far_filename,
 )
 from nemo_text_processing.text_normalization.en.taggers.punctuation import PunctuationFst
 from nemo_text_processing.text_normalization.it.taggers.cardinal import CardinalFst
@@ -56,18 +57,25 @@ class ClassifyFst(GraphFst):
         self,
         input_case: str,
         deterministic: bool = False,
+        project_input: bool = False,
         cache_dir: str = None,
         overwrite_cache: bool = False,
-        whitelist: str = None,
+        whitelist: str = None
     ):
         super().__init__(name="tokenize_and_classify", kind="classify", deterministic=deterministic)
         far_file = None
         if cache_dir is not None and cache_dir != "None":
             os.makedirs(cache_dir, exist_ok=True)
             whitelist_file = os.path.basename(whitelist) if whitelist else ""
-            far_file = os.path.join(
-                cache_dir,
-                f"_{input_case}_it_tn_{deterministic}_deterministic{whitelist_file}.far",
+            far_file = generate_far_filename(
+                language="it",
+                mode="tn",
+                cache_dir=cache_dir,
+                operation="tokenize",
+                deterministic=deterministic,
+                project_input=project_input,
+                input_case=input_case,
+                whitelist_file=whitelist_file
             )
         if not overwrite_cache and far_file and os.path.exists(far_file):
             self.fst = pynini.Far(far_file, mode="r")["tokenize_and_classify"]
@@ -75,38 +83,30 @@ class ClassifyFst(GraphFst):
         else:
             logger.info(f"Creating ClassifyFst grammars. This might take some time...")
 
-            self.cardinal = CardinalFst(deterministic=deterministic)
+            self.cardinal = CardinalFst(deterministic=deterministic, project_input=project_input)
             cardinal_graph = self.cardinal.fst
 
-            self.decimal = DecimalFst(cardinal=self.cardinal, deterministic=deterministic)
+            self.decimal = DecimalFst(cardinal=self.cardinal, deterministic=deterministic, project_input=project_input)
             decimal_graph = self.decimal.fst
 
-            word_graph = WordFst(deterministic=deterministic).fst
+            word_graph = WordFst(deterministic=deterministic, project_input=project_input).fst
 
-            self.whitelist = WhiteListFst(input_case=input_case, deterministic=deterministic, input_file=whitelist)
+            self.whitelist = WhiteListFst(input_case=input_case, deterministic=deterministic, input_file=whitelist, project_input=project_input)
             whitelist_graph = self.whitelist.fst
 
-            self.electronic = ElectronicFst(deterministic=deterministic)
+            self.electronic = ElectronicFst(deterministic=deterministic, project_input=project_input)
             electronic_graph = self.electronic.fst
 
-            self.measure = MeasureFst(
-                cardinal=self.cardinal,
-                decimal=self.decimal,
-                deterministic=deterministic,
-            )
+            self.measure = MeasureFst(cardinal=self.cardinal, decimal=self.decimal, deterministic=deterministic, project_input=project_input)
             measure_graph = self.measure.fst
 
-            self.money = MoneyFst(
-                cardinal=self.cardinal,
-                decimal=self.decimal,
-                deterministic=deterministic,
-            )
+            self.money = MoneyFst(cardinal=self.cardinal, decimal=self.decimal, deterministic=deterministic, project_input=project_input)
             money_graph = self.money.fst
 
-            self.time = TimeFst(deterministic=deterministic)
+            self.time = TimeFst(deterministic=deterministic, project_input=project_input)
             time_graph = self.time.fst
 
-            punct_graph = PunctuationFst(deterministic=deterministic).fst
+            punct_graph = PunctuationFst(deterministic=deterministic, project_input=project_input).fst
 
             classify = (
                 pynutil.add_weight(whitelist_graph, 0.0)

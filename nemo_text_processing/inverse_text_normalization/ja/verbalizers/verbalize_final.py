@@ -18,7 +18,7 @@ import os
 import pynini
 from pynini.lib import pynutil
 
-from nemo_text_processing.inverse_text_normalization.ja.graph_utils import GraphFst, delete_space, generator_main
+from nemo_text_processing.text_normalization.en.graph_utils import GraphFst, delete_space, generator_main, generate_far_filename
 from nemo_text_processing.inverse_text_normalization.ja.verbalizers.postprocessor import PostProcessor
 from nemo_text_processing.inverse_text_normalization.ja.verbalizers.verbalize import VerbalizeFst
 
@@ -28,20 +28,27 @@ from nemo_text_processing.inverse_text_normalization.ja.verbalizers.verbalize im
 class VerbalizeFinalFst(GraphFst):
     """ """
 
-    def __init__(self, deterministic: bool = True, cache_dir: str = None, overwrite_cache: bool = False):
-        super().__init__(name="verbalize_final", kind="verbalize", deterministic=deterministic)
+    def __init__(
+        self,
+        project_input: bool = False,
+        cache_dir: str = None,
+        overwrite_cache: bool = False
+    ):
+        super().__init__(name="verbalize_final", kind="verbalize")
         far_file = None
         if cache_dir is not None and cache_dir != "None":
             os.makedirs(cache_dir, exist_ok=True)
-            far_file = os.path.join(cache_dir, f"ja_tn_{deterministic}_deterministic_verbalizer.far")
+            far_file = generate_far_filename(
+                language="ja",
+                mode="itn",
+                cache_dir=cache_dir,
+                operation="verbalize",
+                project_input=project_input
+            )
         if not overwrite_cache and far_file and os.path.exists(far_file):
             self.fst = pynini.Far(far_file, mode="r")["verbalize"]
         else:
-            # token_graph = VerbalizeFst(deterministic=deterministic)
-            token_graph = VerbalizeFst().fst
-            # token_verbalizer = (
-            #     pynutil.delete("tokens {") + delete_space + token_graph.fst + delete_space + pynutil.delete(" }")
-            # )
+            token_graph = VerbalizeFst(project_input=project_input).fst
             token_verbalizer = (
                 pynutil.delete("tokens {") + delete_space + token_graph + delete_space + pynutil.delete(" }")
             )

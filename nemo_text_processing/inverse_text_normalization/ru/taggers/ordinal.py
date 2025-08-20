@@ -26,12 +26,14 @@ class OrdinalFst(GraphFst):
 
     Args:
         tn_ordinal: Text normalization Ordinal graph
-        deterministic: if True will provide a single transduction option,
-            for False multiple transduction are generated (used for audio-based normalization)
     """
 
-    def __init__(self, tn_ordinal: GraphFst, deterministic: bool = True):
-        super().__init__(name="ordinal", kind="classify", deterministic=deterministic)
+    def __init__(
+        self,
+        tn_ordinal: GraphFst,
+        project_input: bool = False
+    ):
+        super().__init__(name="ordinal", kind="classify", project_input=project_input)
 
         tn_ordinal = tn_ordinal.ordinal_numbers
 

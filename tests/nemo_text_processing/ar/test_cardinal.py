@@ -18,7 +18,7 @@ from parameterized import parameterized
 from nemo_text_processing.inverse_text_normalization.inverse_normalize import InverseNormalizer
 from nemo_text_processing.text_normalization.normalize import Normalizer
 
-from tests.nemo_text_processing.utils import CACHE_DIR, parse_test_case_file
+from tests.nemo_text_processing.utils import CACHE_DIR, parse_test_case_file, assert_projecting_output
 
 
 class TestCardinal:
@@ -32,7 +32,7 @@ class TestCardinal:
         assert pred == expected
 
     normalizer_ar = Normalizer(
-        input_case='cased', lang='ar', cache_dir=CACHE_DIR, overwrite_cache=False, post_process=True
+        input_case='cased', lang='ar', cache_dir=CACHE_DIR, overwrite_cache=False
     )
 
     @parameterized.expand(parse_test_case_file('ar/data_text_normalization/test_cases_cardinal.txt'))
@@ -41,3 +41,25 @@ class TestCardinal:
     def test_norm(self, test_input, expected):
         pred = self.normalizer_ar.normalize(test_input, verbose=False, punct_post_process=False)
         assert pred == expected, f"input: {test_input}"
+
+    inverse_normalizer_ar_projecting = InverseNormalizer(
+        lang='ar', project_input=True, cache_dir=CACHE_DIR, overwrite_cache=False
+    )
+
+    @parameterized.expand(parse_test_case_file('ar/data_inverse_text_normalization/test_cases_cardinal.txt'))
+    @pytest.mark.run_only_on('CPU')
+    @pytest.mark.unit
+    def test_denorm_project(self, test_input, expected):
+        pred = self.inverse_normalizer_ar_projecting.inverse_normalize(test_input, verbose=False)
+        assert_projecting_output(pred, expected, test_input)
+
+    normalizer_ar_projecting = Normalizer(
+        input_case='cased', lang='ar', project_input=True, cache_dir=CACHE_DIR, overwrite_cache=False
+    )
+
+    @parameterized.expand(parse_test_case_file('ar/data_text_normalization/test_cases_cardinal.txt'))
+    @pytest.mark.run_only_on('CPU')
+    @pytest.mark.unit
+    def test_norm_project(self, test_input, expected):
+        pred = self.normalizer_ar_projecting.normalize(test_input, verbose=False, punct_post_process=False)
+        assert_projecting_output(pred, expected, test_input)
