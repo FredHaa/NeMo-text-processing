@@ -40,7 +40,7 @@ class TestCardinal:
     @pytest.mark.unit
     def test_norm(self, test_input, expected):
         pred = self.normalizer_ar.normalize(test_input, verbose=False, punct_post_process=False)
-        assert pred == expected, f"input: {test_input}"
+        assert pred == expected
 
     inverse_normalizer_ar_projecting = InverseNormalizer(
         lang='ar', project_input=True, cache_dir=CACHE_DIR, overwrite_cache=False

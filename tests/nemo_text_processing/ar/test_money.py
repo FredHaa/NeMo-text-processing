@@ -31,7 +31,7 @@ class TestMoney:
     @pytest.mark.unit
     def test_denorm(self, test_input, expected):
         pred = self.inverse_normalizer.inverse_normalize(test_input, verbose=False)
-        assert pred == expected, f"input: {test_input}"
+        assert pred == expected
 
     normalizer = Normalizer(input_case='cased', lang='ar', cache_dir=CACHE_DIR, overwrite_cache=False)
     normalizer_with_audio = (
@@ -45,7 +45,7 @@ class TestMoney:
     @pytest.mark.unit
     def test_norm(self, test_input, expected):
         pred = self.normalizer.normalize(test_input, verbose=False)
-        assert pred == expected, f"input: {test_input}"
+        assert pred == expected
 
         if self.normalizer_with_audio:
             pred_non_deterministic = self.normalizer_with_audio.normalize(

@@ -31,7 +31,7 @@ class TestWhitelist:
     @pytest.mark.unit
     def test_denorm(self, test_input, expected):
         pred = self.inverse_normalizer.inverse_normalize(test_input, verbose=False)
-        assert pred == expected, f"input: {test_input}"
+        assert pred == expected
 
     normalizer = Normalizer(input_case='cased', lang='ar', cache_dir=CACHE_DIR, overwrite_cache=False)
 
@@ -40,7 +40,7 @@ class TestWhitelist:
     @pytest.mark.unit
     def test_norm(self, test_input, expected):
         pred = self.normalizer.normalize(test_input, verbose=False)
-        assert pred == expected, f"input: {test_input}"
+        assert pred == expected
 
     inverse_normalizer_projecting = InverseNormalizer(
         lang='ar', project_input=True, input_case="cased", cache_dir=CACHE_DIR, overwrite_cache=False
